@@ -1,0 +1,16 @@
+route:
+  - name: Single address
+    ip: 10.10.10.24
+    expect:
+      - when:
+          device: eth0
+          source: 172.17.0.2
+
+  - name: Block addresses
+    ip: 10.10.10.0/30
+    expect:
+      - when:
+          device: xeth1
+          source: 10.10.10.25
+      - when:
+          device: eth0 # fallback if first device doesn't exist
