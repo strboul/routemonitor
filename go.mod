@@ -1,4 +1,4 @@
-module routemonitor
+module github.com/strboul/routemonitor
 
 go 1.21.2
 

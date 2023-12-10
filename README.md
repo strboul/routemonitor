@@ -61,20 +61,21 @@ In case there's a mismatch:
 
 ### Periodically run
 
-Create a service job on a repeating schedule e.g. every 15 minutes runs with
-`systemd-timer` in Linux:
+Create a service job on a repeating schedule e.g. every 5 minutes runs with
+[systemd.timer](https://www.freedesktop.org/software/systemd/man/latest/systemd.timer.html)
+in Linux:
 
 ```sh
 #!/bin/bash
 set -o pipefail
 routemonitor -config=~/.config/routemonitor/config.yml 2>&1 | tee /tmp/routemonitor.log  || \
-  (notify-send 'tinymonitor failed' \"$(cat /tmp/routemonitor.log)\" && exit 1)"
+  (notify-send 'routemonitor failed' \"$(cat /tmp/routemonitor.log)\" && exit 1)"
 ```
 
 ## Installation
 
 ```sh
-go get https://github.com/strboul/routemonitor
+go install github.com/strboul/routemonitor@latest
 ```
 
 ## Roadmap
@@ -83,4 +84,4 @@ go get https://github.com/strboul/routemonitor
 
 - [ ] Add DNS resolver check
 
-- [ ] Support other systems e.g. BSD
+- [ ] Test/support other systems e.g. \*BSD, Darwin, Windows (`go tool dist list`)
