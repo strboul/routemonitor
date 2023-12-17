@@ -9,7 +9,8 @@ import (
 )
 
 type Config struct {
-	Route []Route `yaml:"route"`
+	FailFast bool    `yaml:"fail_fast,omitempty"`
+	Route    []Route `yaml:"route"`
 }
 
 type Route struct {

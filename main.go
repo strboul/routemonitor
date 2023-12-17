@@ -67,17 +67,17 @@ func main() {
 		slog.Error(argsErr.Error())
 		os.Exit(1)
 	}
+	logger := InitLogger(args.verbose, args.json)
 
 	config, configErr := ReadConfig(args.configFilePath)
 	if configErr != nil {
-		slog.Error(configErr.Error())
+		logger.Error(configErr.Error())
 		os.Exit(1)
 	}
 
-	logger := InitLogger(args.verbose, args.json)
 	routeErr := CheckRoutes(config, logger)
 	if routeErr != nil {
-		slog.Error(routeErr.Error())
+		logger.Error(routeErr.Error())
 		os.Exit(1)
 	}
 }

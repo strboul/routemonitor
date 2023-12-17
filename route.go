@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"net"
@@ -16,6 +17,8 @@ type Router struct {
 	router routing.Router
 	logger *slog.Logger
 }
+
+type CheckErrors []error
 
 func parseIp(ip string) (net.IP, error) {
 	parsedIp := net.ParseIP(ip).To4()
@@ -129,7 +132,9 @@ func (r *Router) checkIpRoute(ipv4 net.IP, expects []RouteExpect) error {
 	return nil
 }
 
-func (r *Router) loopRoutes() error {
+func (r *Router) loopRoutes() (error, CheckErrors) {
+	var checkErrs CheckErrors
+
 	for _, route := range r.config.Route {
 
 		ipAddr := strings.Split(route.IP, "/")
@@ -140,7 +145,7 @@ func (r *Router) loopRoutes() error {
 
 		ips, err := getCidrIps(route.IP)
 		if err != nil {
-			return err
+			return err, nil
 		}
 
 		r.logger.Info(
@@ -154,16 +159,25 @@ func (r *Router) loopRoutes() error {
 		for _, ip := range ips {
 			ipv4, err := parseIp(ip.String())
 			if err != nil {
-				return err
+				return err, nil
 			}
 
 			err = r.checkIpRoute(ipv4, route.Expect)
 			if err != nil {
-				return fmt.Errorf("name=\"%s\" ip=\"%s\" %s", route.Name, route.IP, err)
+				errMsg := fmt.Errorf(`name="%s" ip="%s" %s`, route.Name, route.IP, err)
+				checkErrs = append(checkErrs, errMsg)
+				if r.config.FailFast {
+					return nil, checkErrs
+				}
 			}
 		}
 	}
-	return nil
+
+	if len(checkErrs) > 0 {
+		return nil, checkErrs
+	}
+
+	return nil, nil
 }
 
 func newRouter(config Config, logger *slog.Logger) (*Router, error) {
@@ -183,10 +197,18 @@ func CheckRoutes(config Config, logger *slog.Logger) error {
 	if err != nil {
 		return err
 	}
-	err = router.loopRoutes()
+	err, checkErrs := router.loopRoutes()
 	if err != nil {
 		return err
 	}
+	if checkErrs != nil {
+		for _, err := range checkErrs {
+			logger.Error(err.Error())
+		}
+		return errors.New("There are mismatch in routes")
+	}
+
 	fmt.Println("All routes are as expected.")
+
 	return nil
 }

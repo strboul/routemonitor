@@ -25,6 +25,7 @@ Save a config in e.g. `~/.config/routemonitor/config.yml`.
 
 <!-- keep it mirrored with example/config.yml -->
 ```yml
+fail_fast: true
 route:
   - name: Single address
     ip: 10.10.10.24
